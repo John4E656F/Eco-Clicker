@@ -1,48 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { Buildings, buildings } from '../lib/buildings'; // Adjust the path as necessary
+import { Buildings, buildings } from '../lib/buildings';
 
 export const Clicker: React.FC = () => {
-  const [count, setCount] = useState(0);
+  const [energy, setEnergy] = useState(0);
   const [pollution, setPollution] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [purchasedBuildings, setPurchasedBuildings] = useState<{ [key: string]: number }>({});
 
   const handleClick = () => {
     if (!gameOver) {
-      setCount(count + 1);
+      setEnergy(energy + 1); // Assuming each click generates 1 unit of energy for simplicity
     }
   };
 
-  const calculateCost = (buildings: Buildings): number => {
-    const numberOfPurchases = purchasedBuildings[buildings.id] || 0;
-    return Math.ceil(buildings.baseCost * Math.pow(1.15, numberOfPurchases));
+  const calculateCost = (building: Buildings): number => {
+    const numberOfPurchases = purchasedBuildings[building.id] || 0;
+    return Math.ceil(building.baseCost * Math.pow(building.costMultiplier || 1.15, numberOfPurchases));
   };
 
-  const buyBuildings = (buildings: Buildings) => {
-    const cost = calculateCost(buildings);
-    if (count >= cost && !gameOver) {
-      setCount(count - cost);
+  const buyBuilding = (building: Buildings) => {
+    const cost = calculateCost(building);
+    if (energy >= cost && !gameOver) {
+      setEnergy(energy - cost);
       setPurchasedBuildings((prevBuildings) => ({
         ...prevBuildings,
-        [buildings.id]: (prevBuildings[buildings.id] || 0) + 1,
+        [building.id]: (prevBuildings[building.id] || 0) + 1,
       }));
 
-      setPollution((prevPollution) => prevPollution + buildings.pollution);
+      // For industrial buildings, increase pollution immediately upon purchase
+      if (building.type === 'industrial') {
+        setPollution((prevPollution) => prevPollution + building.pollution);
+      }
     }
   };
 
-  // Effect for auto-clickers and generating pollution
+  // Effect for buildings: energy generation and pollution handling
   useEffect(() => {
     const interval = setInterval(() => {
       if (!gameOver) {
-        Object.keys(purchasedBuildings).forEach((buildingsId) => {
-          const building = buildings.find((u) => u.id === buildingsId);
+        let totalPollutionReduction = 0;
+
+        Object.keys(purchasedBuildings).forEach((buildingId) => {
+          const building = buildings.find((b) => b.id === buildingId);
           if (building) {
-            setCount((prevCount) => prevCount + building.energy * (purchasedBuildings[buildingsId] || 0));
-            // Generate pollution for each active auto-clicker every second
-            setPollution((prevPollution) => prevPollution + building.pollution * (purchasedBuildings[buildingsId] || 0));
+            // Increase energy based on the building's energy output
+            setEnergy((prevEnergy) => prevEnergy + building.energy * (purchasedBuildings[buildingId] || 0));
+
+            // Handle pollution generation or reduction
+            if (building.type === 'industrial') {
+              setPollution((prevPollution) => prevPollution + building.pollution * (purchasedBuildings[buildingId] || 0));
+            } else if (building.pollutionReduction) {
+              totalPollutionReduction += building.pollutionReduction * (purchasedBuildings[buildingId] || 0);
+            }
           }
         });
+
+        // Apply total pollution reduction from all sustainable buildings
+        setPollution((prevPollution) => Math.max(0, prevPollution - totalPollutionReduction));
       }
     }, 1000); // every second
 
@@ -52,7 +66,6 @@ export const Clicker: React.FC = () => {
   // Check for game over condition based on pollution
   useEffect(() => {
     if (pollution >= 1000000) {
-      // 1 million pollution leads to game over
       setGameOver(true);
     }
   }, [pollution]);
@@ -63,15 +76,19 @@ export const Clicker: React.FC = () => {
         <h2>Game Over! You&apos;ve generated too much pollution.</h2>
       ) : (
         <>
-          <button onClick={handleClick}>Click Me!</button>
-          <p>Energy generated: {count}</p>
-          <p>Pollution generated: {pollution.toFixed(0)}</p>
+          <button onClick={handleClick}>Generate Energy</button>
+          <p>Energy generated: {energy.toFixed(2)}</p>
+          <p>Pollution generated: {pollution.toFixed(2)}</p>
           <br />
           <div>
             <h2>Shop</h2>
-            {buildings.map((buildings) => (
-              <button key={buildings.id} onClick={() => buyBuildings(buildings)}>
-                Buy {buildings.name} for {calculateCost(buildings)} cookies
+            {buildings.map((building) => (
+              <button
+                key={building.id}
+                onClick={() => buyBuilding(building)}
+                style={{ display: 'block', margin: '10px 0' }} // Added style here
+              >
+                Buy {building.name} for {calculateCost(building)} energy units
               </button>
             ))}
           </div>
