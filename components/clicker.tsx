@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Upgrade, upgrades } from '../lib/upgrades'; // Adjust the path as necessary
+import { Buildings, buildings } from '../lib/buildings'; // Adjust the path as necessary
 
 export const Clicker: React.FC = () => {
   const [count, setCount] = useState(0);
   const [pollution, setPollution] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [purchasedUpgrades, setPurchasedUpgrades] = useState<{ [key: string]: number }>({});
+  const [purchasedBuildings, setPurchasedBuildings] = useState<{ [key: string]: number }>({});
 
   const handleClick = () => {
     if (!gameOver) {
@@ -13,21 +13,21 @@ export const Clicker: React.FC = () => {
     }
   };
 
-  const calculateCost = (upgrade: Upgrade): number => {
-    const numberOfPurchases = purchasedUpgrades[upgrade.id] || 0;
-    return Math.ceil(upgrade.baseCost * Math.pow(1.15, numberOfPurchases));
+  const calculateCost = (buildings: Buildings): number => {
+    const numberOfPurchases = purchasedBuildings[buildings.id] || 0;
+    return Math.ceil(buildings.baseCost * Math.pow(1.15, numberOfPurchases));
   };
 
-  const buyUpgrade = (upgrade: Upgrade) => {
-    const cost = calculateCost(upgrade);
+  const buyBuildings = (buildings: Buildings) => {
+    const cost = calculateCost(buildings);
     if (count >= cost && !gameOver) {
       setCount(count - cost);
-      setPurchasedUpgrades((prevUpgrades) => ({
-        ...prevUpgrades,
-        [upgrade.id]: (prevUpgrades[upgrade.id] || 0) + 1,
+      setPurchasedBuildings((prevBuildings) => ({
+        ...prevBuildings,
+        [buildings.id]: (prevBuildings[buildings.id] || 0) + 1,
       }));
-      // Increment pollution based on the specific upgrade's pollution rate
-      setPollution((prevPollution) => prevPollution + upgrade.pollution);
+
+      setPollution((prevPollution) => prevPollution + buildings.pollution);
     }
   };
 
@@ -35,19 +35,19 @@ export const Clicker: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!gameOver) {
-        Object.keys(purchasedUpgrades).forEach((upgradeId) => {
-          const upgrade = upgrades.find((u) => u.id === upgradeId);
-          if (upgrade) {
-            setCount((prevCount) => prevCount + upgrade.increment * (purchasedUpgrades[upgradeId] || 0));
+        Object.keys(purchasedBuildings).forEach((buildingsId) => {
+          const building = buildings.find((u) => u.id === buildingsId);
+          if (building) {
+            setCount((prevCount) => prevCount + building.energy * (purchasedBuildings[buildingsId] || 0));
             // Generate pollution for each active auto-clicker every second
-            setPollution((prevPollution) => prevPollution + upgrade.pollution * (purchasedUpgrades[upgradeId] || 0));
+            setPollution((prevPollution) => prevPollution + building.pollution * (purchasedBuildings[buildingsId] || 0));
           }
         });
       }
     }, 1000); // every second
 
     return () => clearInterval(interval);
-  }, [purchasedUpgrades, gameOver]);
+  }, [purchasedBuildings, gameOver]);
 
   // Check for game over condition based on pollution
   useEffect(() => {
@@ -69,9 +69,9 @@ export const Clicker: React.FC = () => {
           <br />
           <div>
             <h2>Shop</h2>
-            {upgrades.map((upgrade) => (
-              <button key={upgrade.id} onClick={() => buyUpgrade(upgrade)}>
-                Buy {upgrade.name} for {calculateCost(upgrade)} cookies
+            {buildings.map((buildings) => (
+              <button key={buildings.id} onClick={() => buyBuildings(buildings)}>
+                Buy {buildings.name} for {calculateCost(buildings)} cookies
               </button>
             ))}
           </div>

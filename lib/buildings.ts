@@ -1,21 +1,20 @@
 // lib/upgrades.ts
-export interface Upgrade {
+export interface Buildings {
   id: string;
   name: string;
   baseCost: number; // Rename to baseCost for clarity
-  increment: number;
+  energy: number;
   costMultiplier?: number;
   pollution: number;
 }
 
-export const upgrades: Upgrade[] = [
+export const buildings: Buildings[] = [
   {
     id: 'auto-clicker',
     name: 'Auto-Clicker',
     baseCost: 10,
-    increment: 1,
+    energy: 1,
     costMultiplier: 1.15,
     pollution: 0.2,
   },
-  // Add more upgrades here
 ];
