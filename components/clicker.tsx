@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Buildings, buildings } from '../lib/buildings';
+import { Buildings, industrialBuildings, ecoBuildings } from '../lib/buildings'; // Ensure correct import paths
 
 export const Clicker: React.FC = () => {
   const [energy, setEnergy] = useState(0);
@@ -9,7 +9,7 @@ export const Clicker: React.FC = () => {
 
   const handleClick = () => {
     if (!gameOver) {
-      setEnergy(energy + 1); // Assuming each click generates 1 unit of energy for simplicity
+      setEnergy(energy + 1);
     }
   };
 
@@ -27,26 +27,22 @@ export const Clicker: React.FC = () => {
         [building.id]: (prevBuildings[building.id] || 0) + 1,
       }));
 
-      // For industrial buildings, increase pollution immediately upon purchase
       if (building.type === 'industrial') {
         setPollution((prevPollution) => prevPollution + building.pollution);
       }
     }
   };
 
-  // Effect for buildings: energy generation and pollution handling
   useEffect(() => {
     const interval = setInterval(() => {
       if (!gameOver) {
         let totalPollutionReduction = 0;
 
         Object.keys(purchasedBuildings).forEach((buildingId) => {
-          const building = buildings.find((b) => b.id === buildingId);
+          const building = [...industrialBuildings, ...ecoBuildings].find((b) => b.id === buildingId);
           if (building) {
-            // Increase energy based on the building's energy output
             setEnergy((prevEnergy) => prevEnergy + building.energy * (purchasedBuildings[buildingId] || 0));
 
-            // Handle pollution generation or reduction
             if (building.type === 'industrial') {
               setPollution((prevPollution) => prevPollution + building.pollution * (purchasedBuildings[buildingId] || 0));
             } else if (building.pollutionReduction) {
@@ -55,15 +51,13 @@ export const Clicker: React.FC = () => {
           }
         });
 
-        // Apply total pollution reduction from all sustainable buildings
         setPollution((prevPollution) => Math.max(0, prevPollution - totalPollutionReduction));
       }
-    }, 1000); // every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [purchasedBuildings, gameOver]);
 
-  // Check for game over condition based on pollution
   useEffect(() => {
     if (pollution >= 1000000) {
       setGameOver(true);
@@ -77,17 +71,19 @@ export const Clicker: React.FC = () => {
       ) : (
         <>
           <button onClick={handleClick}>Generate Energy</button>
-          <p>Energy generated: {energy.toFixed(2)}</p>
-          <p>Pollution generated: {pollution.toFixed(2)}</p>
+          <p>Energy generated: {energy.toFixed(0)}</p>
+          <p>Pollution generated: {pollution.toFixed(0)}</p>
           <br />
           <div>
-            <h2>Shop</h2>
-            {buildings.map((building) => (
-              <button
-                key={building.id}
-                onClick={() => buyBuilding(building)}
-                style={{ display: 'block', margin: '10px 0' }} // Added style here
-              >
+            <h2>Industrial Buildings</h2>
+            {industrialBuildings.map((building) => (
+              <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
+                Buy {building.name} for {calculateCost(building)} energy units
+              </button>
+            ))}
+            <h2>Eco Buildings</h2>
+            {ecoBuildings.map((building) => (
+              <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
                 Buy {building.name} for {calculateCost(building)} energy units
               </button>
             ))}
