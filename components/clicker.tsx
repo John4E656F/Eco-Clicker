@@ -65,28 +65,35 @@ export const Clicker: React.FC = () => {
   }, [pollution]);
 
   return (
-    <div>
+    <div className='flex flex-col gap-5'>
       {gameOver ? (
         <h2>Game Over! You&apos;ve generated too much pollution.</h2>
       ) : (
         <>
-          <button onClick={handleClick}>Generate Energy</button>
-          <p>Energy generated: {energy.toFixed(0)}</p>
-          <p>Pollution generated: {pollution.toFixed(0)}</p>
-          <br />
-          <div>
-            <h2>Industrial Buildings</h2>
-            {industrialBuildings.map((building) => (
-              <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
-                Buy {building.name} for {calculateCost(building)} energy units
-              </button>
-            ))}
-            <h2>Eco Buildings</h2>
-            {ecoBuildings.map((building) => (
-              <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
-                Buy {building.name} for {calculateCost(building)} energy units
-              </button>
-            ))}
+          <div className='flex flex-col justify-center'>
+            <button onClick={handleClick} className='bg-slate-500 rounded-full hover:bg-slate-400 p-2'>
+              Generate Energy
+            </button>
+            <p>Energy generated: {energy.toFixed(0)}</p>
+            <p>Pollution generated: {pollution.toFixed(0)}</p>
+          </div>
+          <div className='flex flex-row'>
+            <div>
+              <h2>Industrial Buildings</h2>
+              {industrialBuildings.map((building) => (
+                <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
+                  Buy {building.name} for {calculateCost(building)} energy units
+                </button>
+              ))}
+            </div>
+            <div>
+              <h2>Eco Buildings</h2>
+              {ecoBuildings.map((building) => (
+                <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
+                  Buy {building.name} for {calculateCost(building)} energy units
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}
