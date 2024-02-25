@@ -6,7 +6,7 @@ First, run the development server:
 
 ```bash
 
-#To installthe project
+#To install the project
 
 npm install
 #then run
