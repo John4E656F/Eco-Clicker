@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Buildings, industrialBuildings, ecoBuildings } from '../lib/buildings'; // Ensure correct import paths
 
 export const Clicker: React.FC = () => {
-  const [energy, setEnergy] = useState(0);
+  const [energy, setEnergy] = useState(10000);
   const [pollution, setPollution] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [purchasedBuildings, setPurchasedBuildings] = useState<{ [key: string]: number }>({});
