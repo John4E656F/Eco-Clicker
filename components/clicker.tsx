@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Buildings, industrialBuildings, ecoBuildings } from '../lib/buildings'; // Ensure correct import paths
+import { Buildings, industrialBuildings, ecoBuildings } from '../lib/buildings';
 
 export const Clicker: React.FC = () => {
-  const [energy, setEnergy] = useState(10000);
+  const [energy, setEnergy] = useState(10000); //edit this number to change the base energy
   const [pollution, setPollution] = useState(0);
+  const [pollutionLimit, setPollutionLimit] = useState(1000); //Edit this number to change the pollution limit
   const [gameOver, setGameOver] = useState(false);
   const [purchasedBuildings, setPurchasedBuildings] = useState<{ [key: string]: number }>({});
 
@@ -30,8 +31,18 @@ export const Clicker: React.FC = () => {
       if (building.type === 'industrial') {
         setPollution((prevPollution) => prevPollution + building.pollution);
       }
+      const addLimit = building.addPollutionLimit;
+      if (typeof addLimit === 'number') {
+        setPollutionLimit((prevLimit) => prevLimit + addLimit);
+      }
     }
   };
+
+  useEffect(() => {
+    if (pollution >= pollutionLimit) {
+      setGameOver(true);
+    }
+  }, [pollution, pollutionLimit]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,12 +69,6 @@ export const Clicker: React.FC = () => {
     return () => clearInterval(interval);
   }, [purchasedBuildings, gameOver]);
 
-  useEffect(() => {
-    if (pollution >= 1000000) {
-      setGameOver(true);
-    }
-  }, [pollution]);
-
   return (
     <div className='flex flex-col gap-5'>
       {gameOver ? (
@@ -75,14 +80,16 @@ export const Clicker: React.FC = () => {
               Generate Energy
             </button>
             <p>Energy generated: {energy.toFixed(0)}</p>
-            <p>Pollution generated: {pollution.toFixed(0)}</p>
+            <p>
+              Pollution generated: {pollution.toFixed(0)} - Pollution Limit: {pollutionLimit}
+            </p>
           </div>
-          <div className='flex flex-row'>
+          <div className='flex flex-row gap-5'>
             <div>
               <h2>Industrial Buildings</h2>
               {industrialBuildings.map((building) => (
                 <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
-                  Buy {building.name} for {calculateCost(building)} energy units
+                  Buy {building.name} for {calculateCost(building)} energy
                 </button>
               ))}
             </div>
@@ -90,7 +97,7 @@ export const Clicker: React.FC = () => {
               <h2>Eco Buildings</h2>
               {ecoBuildings.map((building) => (
                 <button key={building.id} onClick={() => buyBuilding(building)} style={{ display: 'block', margin: '10px 0' }}>
-                  Buy {building.name} for {calculateCost(building)} energy units
+                  Buy {building.name} for {calculateCost(building)} energy
                 </button>
               ))}
             </div>
